@@ -1,0 +1,15 @@
+fastapi==0.115.14
+motor==3.5.0
+pymongo==4.8.0
+pydantic==2.11.7
+python-dotenv==1.0.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+selenium==4.23.1
+webdriver-manager==4.0.1
+pytest==7.4.3
+pytest-asyncio==0.21.1
+uvicorn==0.23.2
+openai==1.37.0
+langchain==0.2.11
+langchain-openai==0.1.18 

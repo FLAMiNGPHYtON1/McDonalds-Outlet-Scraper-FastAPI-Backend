@@ -1,0 +1,1 @@
+# API module for McDonald's Outlet Scraper 
