@@ -58,17 +58,30 @@ class McDonaldsOutletScraper:
         """Set up Chrome WebDriver with appropriate options."""
         chrome_options = Options()
         if self.headless:
-            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--headless=new")
+        
+        # Essential container stability options
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--disable-web-security")
-        chrome_options.add_argument("--disable-features=VizDisplayCompositor")
-        chrome_options.add_argument("--remote-debugging-port=9222")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-plugins")
+        chrome_options.add_argument("--disable-images")
+        chrome_options.add_argument("--disable-background-timer-throttling")
+        chrome_options.add_argument("--disable-backgrounding-occluded-windows")
+        chrome_options.add_argument("--disable-renderer-backgrounding")
+        chrome_options.add_argument("--disable-features=TranslateUI,VizDisplayCompositor")
+        chrome_options.add_argument("--memory-pressure-off")
+        chrome_options.add_argument("--max_old_space_size=512")
+        chrome_options.add_argument("--aggressive-cache-discard")
+        chrome_options.add_argument("--window-size=1024,768")
+        
+        # Disable automation detection
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
         
         # Auto-install ChromeDriver with explicit version control
         try:
@@ -109,7 +122,10 @@ class McDonaldsOutletScraper:
         
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-        self.wait = WebDriverWait(self.driver, 10)
+        # Set page load timeout to prevent hanging
+        self.driver.set_page_load_timeout(30)
+        self.driver.implicitly_wait(10)
+        self.wait = WebDriverWait(self.driver, 15)
         
         if self.driver is None or self.wait is None:
             raise RuntimeError("Failed to initialize WebDriver or WebDriverWait")
@@ -155,11 +171,22 @@ class McDonaldsOutletScraper:
             search_button.click()
             
             # Wait for results to load
-            time.sleep(3)
+            time.sleep(5)
             logger.info(f"Search performed for: {search_term}")
+            
+            # Verify that Chrome didn't crash by checking if driver is still responsive
+            try:
+                self.driver.current_url
+                logger.info("Chrome driver is still responsive after search")
+            except Exception as e:
+                logger.error(f"Chrome driver became unresponsive after search: {e}")
+                raise Exception("Chrome crashed during search operation")
             
         except TimeoutException:
             logger.error("Search input not found or page did not load properly")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during search: {e}")
             raise
             
     def _extract_outlet_info(self, outlet_element) -> Dict[str, str]:
