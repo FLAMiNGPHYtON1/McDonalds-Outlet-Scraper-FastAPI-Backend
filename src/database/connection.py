@@ -24,6 +24,7 @@ class DatabaseConfig:
     
     def __init__(self):
         """Initialize database configuration."""
+        print(os.getenv("MONGODB_URL"))
         self.mongodb_url: str = os.getenv(
             "MONGODB_URL", 
             "mongodb://localhost:27017"
