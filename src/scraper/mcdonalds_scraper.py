@@ -77,6 +77,7 @@ class McDonaldsOutletScraper:
             
             # Handle the case where WebDriver Manager returns the wrong path
             import os
+            import stat
             if driver_path.endswith('THIRD_PARTY_NOTICES.chromedriver'):
                 # Fix the path to point to the actual chromedriver executable
                 driver_dir = os.path.dirname(driver_path)
@@ -88,6 +89,12 @@ class McDonaldsOutletScraper:
                     linux_driver_path = os.path.join(driver_dir, 'chromedriver-linux64', 'chromedriver')
                     if os.path.exists(linux_driver_path):
                         driver_path = linux_driver_path
+            
+            # Ensure the ChromeDriver has execute permissions
+            if os.path.exists(driver_path):
+                current_permissions = os.stat(driver_path).st_mode
+                os.chmod(driver_path, current_permissions | stat.S_IEXEC)
+                logger.info(f"Set execute permissions for ChromeDriver at: {driver_path}")
             
             service = Service(driver_path)
         except Exception as e:
