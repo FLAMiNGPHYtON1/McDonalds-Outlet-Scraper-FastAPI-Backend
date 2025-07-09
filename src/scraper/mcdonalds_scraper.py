@@ -73,7 +73,23 @@ class McDonaldsOutletScraper:
         # Auto-install ChromeDriver with explicit version control
         try:
             # Force fresh download with specific version
-            service = Service(ChromeDriverManager().install())
+            driver_path = ChromeDriverManager().install()
+            
+            # Handle the case where WebDriver Manager returns the wrong path
+            import os
+            if driver_path.endswith('THIRD_PARTY_NOTICES.chromedriver'):
+                # Fix the path to point to the actual chromedriver executable
+                driver_dir = os.path.dirname(driver_path)
+                actual_driver_path = os.path.join(driver_dir, 'chromedriver')
+                if os.path.exists(actual_driver_path):
+                    driver_path = actual_driver_path
+                else:
+                    # Try chromedriver-linux64 directory
+                    linux_driver_path = os.path.join(driver_dir, 'chromedriver-linux64', 'chromedriver')
+                    if os.path.exists(linux_driver_path):
+                        driver_path = linux_driver_path
+            
+            service = Service(driver_path)
         except Exception as e:
             logger.error(f"ChromeDriver auto-installation failed: {e}")
             logger.info("Trying alternative: manual ChromeDriver path...")
@@ -82,7 +98,7 @@ class McDonaldsOutletScraper:
                 service = Service("chromedriver")
             except Exception as e2:
                 logger.error(f"Manual ChromeDriver also failed: {e2}")
-                raise Exception(f"ChromeDriver setup failed. Please install Chrome browser and clear cache at: C:\\Users\\Ali Work\\.wdm")
+                raise Exception(f"ChromeDriver setup failed. Cannot find ChromeDriver executable")
         
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
