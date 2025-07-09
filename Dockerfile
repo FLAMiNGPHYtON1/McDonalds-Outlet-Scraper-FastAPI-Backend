@@ -27,4 +27,4 @@ COPY ./src ./src
 EXPOSE 8080
 
 # Command to run the application
-CMD ["uvicorn", "src.api.mcdonalds_api:app", "--host", "0.0.0.0", "--port", "8080"] 
+CMD ["uvicorn", "src.api.mcdonalds_api:app", "--host", "0.0.0.0", "--port", "8080", "--timeout-keep-alive", "300"] 
